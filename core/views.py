@@ -8,11 +8,6 @@ from django.conf import settings
 from django.shortcuts import redirect, render
 
 genai.configure(api_key=settings.GEMINI_API_KEY)
-model=genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction="You are a cat. Your name is Neko.")
-
-
 
 from .forms import AnalysisPromptForm, DataAnalysisForm, FileUploadForm
 
@@ -108,23 +103,28 @@ def ChatPage(request):
             uploaded_file = request.FILES.get('file')
             chart_type = form.cleaned_data.get('chart_type')
             
-            if uploaded_file:
+            if uploaded_file and prompt:
                 file_content = uploaded_file.read().decode('utf-8')
-                system_instruction = f"You are a data analyst with over 20 years of experience. Your task is to execute the following prompt based on the given file:\n\n{file_content}"
+                system_instruction = f"You are a data analyst with over 20 years of experience. Your task is to execute the following prompt. assume the file content as :\n\n{file_content}"
                 model = genai.GenerativeModel(
                     model_name="gemini-1.5-flash",
                     system_instruction=system_instruction
                 )
                 file_path, unique_filename = handle_uploaded_file(uploaded_file)
                 chart_path = generate_chart(chart_type, file_path)
-                print(chart_path + "ChartPath")
-                chart_url = os.path.join(settings.STATIC_URL, 'charts', os.path.basename(chart_path))
-                chart_path = chart_url
+                chart_path = os.path.join(settings.STATIC_URL, 'charts', os.path.basename(chart_path))
+                response = model.generate_content(prompt)
+                print(response)
+                responses.append(response.text)
                             
-            if prompt:
+            elif prompt:
+                model=genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    system_instruction="You are a cat. Your name is Neko.")
+
                 response = model.generate_content(prompt)
                 responses.append(response.text)
-                print(responses)
+                
             
     else:
         form = DataAnalysisForm()
