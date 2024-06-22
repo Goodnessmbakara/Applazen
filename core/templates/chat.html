@@ -37,14 +37,14 @@
 <body>
     <div class="chat-container">
         <div class="chat-box">
-            <!-- {{request.session.responses}} -->
-            {{responses}}
-                
-                    <div class="prompt">Prompt: {{ item.prompt }}</div>
-                    <div class="response">Response: {{ item.response }}</div>
+        <!-- {{request.session.responses}}  -->
+        {% if responses %}
+            <div class="prompt">Prompt: {{ item.prompt }}</div>
+            <div class="response">Response: {{ responses }}</div>
+        {% endif %}
                 
                 {% if chart_path %}
-                <img src="{% static chart_path %}" alt="Your Image">
+                    <div class="chart">Chart: <img src="{{ chart_path }}" alt="Generated Chart" /></div>
                 {% endif %}
     
         </div>

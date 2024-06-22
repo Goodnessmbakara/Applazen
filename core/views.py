@@ -108,7 +108,7 @@ def ChatPage(request):
             uploaded_file = request.FILES.get('file')
             chart_type = form.cleaned_data.get('chart_type')
             
-            if uploaded_file and prompt:
+            if uploaded_file:
                 file_content = uploaded_file.read().decode('utf-8')
                 system_instruction = f"You are a data analyst with over 20 years of experience. Your task is to execute the following prompt based on the given file:\n\n{file_content}"
                 model = genai.GenerativeModel(
@@ -117,33 +117,16 @@ def ChatPage(request):
                 )
                 file_path, unique_filename = handle_uploaded_file(uploaded_file)
                 chart_path = generate_chart(chart_type, file_path)
-                print(chart_path + "I am chart path")
+                print(chart_path + "ChartPath")
                 chart_url = os.path.join(settings.STATIC_URL, 'charts', os.path.basename(chart_path))
-                print(chart_url + "I am chart url")
-                responses.append({
-                    'chart_type': chart_type,
-                    'chart_path': chart_path,
-                    'filename': chart_path.split('/')[-1]
-                })
-                
-            else:
-                system_instruction = f"You are a data analyst with over 20 years of experience."
-                model = genai.GenerativeModel(
-                    model_name="gemini-1.5-flash",
-                    system_instruction=system_instruction
-                )
+                chart_path = chart_url
+                            
+            if prompt:
                 response = model.generate_content(prompt)
-                responses.append(response.text)   
-                request.session['responses'] = responses
-            context = {
-                    'chart_type': chart_type,
-                    'chart_path': chart_path,
-                    #'filename': chart_path.split('/')[-1],
-                    'form': form, 
-                    # 'responses': responses,
-                }
+                responses.append(response.text)
+                print(responses)
+            
     else:
-        print(responses)
         form = DataAnalysisForm()
     
-    return render(request, 'chat.html',context = context)
+    return render(request, 'chat.html', {'form': form, 'responses': responses, 'chart_path': chart_path})
